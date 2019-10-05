@@ -49,23 +49,27 @@
                 constructor(){
                     super();
                     this.state = {
-                    student: {}
-                    
+                    student: {},
+                    schools: []
                 }
                 this.handleSubmit = this.handleSubmit.bind(this);
             }
                 async handleSubmit(){
                     await this.props.create(this.state)
                 }
+                 async componentDidMount(){
+                    const responses = await axios.get('/api/schools')
+                    this.setState({ schools: responses.data })
+                }
                 render(){
-                    const { student, schools } = this.state;
+                    const { student, schools} = this.state;
                     const { handleSubmit } = this;
                     return (
                     <form onSubmit={handleSubmit}>
-                        First name: <input value={ firstName } onChange={(ev)=> this.setState({ firstName: ev.target.value})} />
-                        Last name: <input value={ lastName } onChange={(ev)=> this.setState({ lastName: ev.target.value})} />
-                        Email: <input value={ email } onChange={(ev)=> this.setState({ email: ev.target.value})} />
-                        GPA<input value={ GPA } onChange={(ev)=> this.setState({ GPA: ev.target.value})} />
+                        First name: <input value={ student.firstName } onChange={(ev)=> this.setState({ firstName: ev.target.value})} />
+                        Last name: <input value={ student.lastName } onChange={(ev)=> this.setState({ lastName: ev.target.value})} />
+                        Email: <input value={ student.email } onChange={(ev)=> this.setState({ email: ev.target.value})} />
+                        GPA<input value={ student.GPA } onChange={(ev)=> this.setState({ GPA: ev.target.value})} />
                         <select className='schoolImage' onChange={(ev)=>this.setState({schoolId: ev.target.value})}>
                             {schools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}
                             </select>
