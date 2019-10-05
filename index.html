@@ -45,31 +45,64 @@
             const { HashRouter, Route, Switch, Link } = ReactRouterDOM;
             const root = document.getElementById('root');
 
-            // const Nav = () => {
-                
-            // };
+            const Nav = ({ schools, students, path }) => {
+                return(
+                <nav>
+                    <Link to='/schools'>School</Link>
+                    <Link to='/students'>Student</Link>
+                </nav>
+                )
+            };
 
-            const School = ({ schools, students }) => {
+            const Schools = ({ schools, students }) => {
+                /*
                 const schoolStudents = schools.map(school => {
                    return {...school, student: students.filter(student => student.schoolId === school.id)}
                 })
+                */
                 return (
                     <div>
-                        {schoolStudents.map(item => <div className='container'>
+                        {schools.map(school => <Link to={`/schools/${school.id}`}><div className='container'>
                                 <div className='title'>
-                                <h3>{item.name}</h3>
+                                <h3>{school.name}</h3>
                                 </div>
                                 <div className='image portrait-crop'>
-                                        <img src={item.imageUrl}/>
+                                        <img src={school.imageUrl}/>
                                 </div>
                                 <div>
-                                <h3 className='third'>{item.student.length}</h3>
+                                <h3 className='third'>{school.students.length}</h3>
                                 </div>
-                            </div>)}
+                            </div></Link>)}
                     </div>         
                     
                 )
             };
+
+            const School = (props) => {
+                const id = props.match.params.id;
+                const school = props.schools.find(school => school.id === id);
+                console.log(props)
+                 return (
+                    <div>
+                        <h2>{school.name}</h2>
+                        <ul>
+                            {
+                                school.students.map(student => <li><div className='container'>
+                                <div className='title'>
+                                <h3>{student.firstName} {student.lastName}</h3>
+                                </div>
+                                <div className='image portrait-crop'>
+                                        <img src={school.imageUrl}/>
+                                </div>
+                                <div>
+                                <h3 className='third'>GPA {student.GPA}</h3>
+                                </div>
+                            </div></li>)
+                            }
+                        </ul>
+                    </div>
+                 )
+            }
 
             const Student = () => {
                 return (
@@ -91,15 +124,12 @@
                 }
                 render(){
                     const { students, schools } = this.state
-                    // console.log(students, schools)
                     return(
                         <HashRouter>
-                            <nav>
-                                <Link to='/schools'>School</Link>
-                                <Link to='/students'>Student</Link>
-                            </nav>
+                            <Route render={ (props)=> <Nav path={ props.location.pathname} schools={schools} students={students}   /> } />
                             <Switch>
-                                <Route path='/schools' render={() => <School schools={schools} students={students}/>} />
+                                <Route exact path='/schools' render={() => <Schools schools={schools} students={students}/>} />
+                                <Route path='/schools/:id' render={(props) => <School schools={schools} students={students} {...props} />} />
                                 <Route path='/students' component= {Student}/>
                             </Switch>
                         </HashRouter>

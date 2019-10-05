@@ -14,7 +14,7 @@ app.get('/api/students', async(req,res,next) => {
 });
 
 app.get('/api/schools', async(req,res,next) => {
-    School.findAll()
+    School.findAll({include: [Student]})
         .then(schools => res.send(schools))
         .catch(next);
 });
