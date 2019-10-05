@@ -45,6 +45,37 @@
             const { HashRouter, Route, Switch, Link } = ReactRouterDOM;
             const root = document.getElementById('root');
 
+            class Form extends Component{
+                constructor(){
+                    super();
+                    this.state = {
+                    student: {}
+                    
+                }
+                this.handleSubmit = this.handleSubmit.bind(this);
+            }
+                async handleSubmit(){
+                    await this.props.create(this.state)
+                }
+                render(){
+                    const { student, schools } = this.state;
+                    const { handleSubmit } = this;
+                    return (
+                    <form onSubmit={handleSubmit}>
+                        First name: <input value={ firstName } onChange={(ev)=> this.setState({ firstName: ev.target.value})} />
+                        Last name: <input value={ lastName } onChange={(ev)=> this.setState({ lastName: ev.target.value})} />
+                        Email: <input value={ email } onChange={(ev)=> this.setState({ email: ev.target.value})} />
+                        GPA<input value={ GPA } onChange={(ev)=> this.setState({ GPA: ev.target.value})} />
+                        <select className='schoolImage' onChange={(ev)=>this.setState({schoolId: ev.target.value})}>
+                            {schools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}
+                            </select>
+                        <button type='submit'>Save</button>
+                    </form>
+                    );
+                }
+            }
+
+
             const Nav = ({ schools, students, path }) => {
                 return(
                 <nav>
@@ -127,6 +158,7 @@
                     return(
                         <HashRouter>
                             <Route render={ (props)=> <Nav path={ props.location.pathname} schools={schools} students={students}   /> } />
+                            <Form schools={ schools } students={students}/>
                             <Switch>
                                 <Route exact path='/schools' render={() => <Schools schools={schools} students={students}/>} />
                                 <Route path='/schools/:id' render={(props) => <School schools={schools} students={students} {...props} />} />
