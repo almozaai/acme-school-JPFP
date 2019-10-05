@@ -54,8 +54,11 @@
                 }
                 this.handleSubmit = this.handleSubmit.bind(this);
             }
-                async handleSubmit(){
-                    await this.props.create(this.state)
+                 async handleSubmit(ev){
+                    ev.preventDefault()
+                    const student = (await axios.post('/api/students', this.state))
+                    console.log('this one', this.state)
+                    // await this.props.create(this.state)
                 }
                  async componentDidMount(){
                     const responses = await axios.get('/api/schools')
@@ -63,9 +66,8 @@
                 }
                 render(){
                     const { student, schools} = this.state;
-                    const { handleSubmit } = this;
                     return (
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={this.handleSubmit}>
                         First name: <input value={ student.firstName } onChange={(ev)=> this.setState({ firstName: ev.target.value})} />
                         Last name: <input value={ student.lastName } onChange={(ev)=> this.setState({ lastName: ev.target.value})} />
                         Email: <input value={ student.email } onChange={(ev)=> this.setState({ email: ev.target.value})} />
@@ -152,6 +154,13 @@
                         students: [],
                         schools: []
                     }
+                    this.handleSubmit = this.handleSubmit.bind(this)
+                }
+                async handleSubmit(ev){
+                    ev.preventDefault()
+                    const student = (await axios.post('/api/students', this.state)).data
+                    console.log('this one', this.state)
+                    this.setState({ students : [...this.state.students, student] })
                 }
                 async componentDidMount(){
                     const responses = await Promise.all([axios.get('/api/students'), axios.get('/api/schools')])
@@ -159,10 +168,11 @@
                 }
                 render(){
                     const { students, schools } = this.state
+                    const { handleSubmit } = this;
                     return(
                         <HashRouter>
                             <Route render={ (props)=> <Nav path={ props.location.pathname} schools={schools} students={students}   /> } />
-                            <Form schools={ schools } students={students}/>
+                            <Form schools={ schools } students={students} handleSubmit = {handleSubmit}/>
                             <Switch>
                                 <Route exact path='/schools' render={() => <Schools schools={schools} students={students}/>} />
                                 <Route path='/schools/:id' render={(props) => <School schools={schools} students={students} {...props} />} />

@@ -13,11 +13,18 @@ app.get('/api/students', async(req,res,next) => {
         .catch(next);
 });
 
-app.get('/api/schools', async(req,res,next) => {
+app.get('/api/schools', (req,res,next) => {
     School.findAll({include: [Student]})
         .then(schools => res.send(schools))
         .catch(next);
 });
+
+app.post('/api/students', (req, res, next) => {
+    console.log(req.body)
+    Student.create(req.body)
+        .then(student => res.send(student))
+        .catch(next)
+})
 
 db.syncAndSeed()
     .then(() => app.listen(port, () => console.log(`listen on port ${port}`)))
