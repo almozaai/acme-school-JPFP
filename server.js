@@ -3,7 +3,7 @@ const app = express();
 const path = require('path');
 const db = require('./db');
 const { Student, School } = db.models;
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 app.get('/', (req, res, next) => res.sendFile(path.join(__dirname, 'index.html')));
 

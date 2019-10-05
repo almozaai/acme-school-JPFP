@@ -6,15 +6,76 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/react-router-dom/5.1.2/react-router-dom.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
         <!-- <link rel="stylesheet" href="/main.css"> -->
+        <style>
+            .container {
+            width: 300px;
+            height: 200px;
+            background-color: lightgray;
+            border: 1px solid black;
+            border-radius: 10px;
+            box-sizing: border-box;
+            }
 
+            .title {
+            text-align: center;
+            }
+
+            .portrait-crop {
+            display: inline-block;
+            height: 70px;
+            width: 100%;
+            overflow: hidden;
+            }
+
+            .portrait-crop img{
+                width: 100%;
+                margin:-21.875% 0;
+            }
+
+            .third {
+            text-align: center;
+            }
+        </style>
     </head>
     <body>
         <div id="root"></div>
         <script type="text/babel">
             const { Component } = React;
             const { render } = ReactDOM;
-            const { HashRouter, Route, Link } = ReactRouterDOM;
+            const { HashRouter, Route, Switch, Link } = ReactRouterDOM;
             const root = document.getElementById('root');
+
+            // const Nav = () => {
+                
+            // };
+
+            const School = ({ schools, students }) => {
+                const schoolStudents = schools.map(school => {
+                   return {...school, student: students.filter(student => student.schoolId === school.id)}
+                })
+                return (
+                    <div>
+                        {schoolStudents.map(item => <div className='container'>
+                                <div className='title'>
+                                <h3>{item.name}</h3>
+                                </div>
+                                <div className='image portrait-crop'>
+                                        <img src={item.imageUrl}/>
+                                </div>
+                                <div>
+                                <h3 className='third'>{item.student.length}</h3>
+                                </div>
+                            </div>)}
+                    </div>         
+                    
+                )
+            };
+
+            const Student = () => {
+                return (
+                    <h1>Student</h1>
+                )
+            }
 
             class App extends Component{
                 constructor(){
@@ -24,9 +85,24 @@
                         schools: []
                     }
                 }
+                async componentDidMount(){
+                    const responses = await Promise.all([axios.get('/api/students'), axios.get('/api/schools')])
+                    this.setState({ students: responses[0].data, schools: responses[1].data })
+                }
                 render(){
+                    const { students, schools } = this.state
+                    // console.log(students, schools)
                     return(
-                        <hr/>
+                        <HashRouter>
+                            <nav>
+                                <Link to='/schools'>School</Link>
+                                <Link to='/students'>Student</Link>
+                            </nav>
+                            <Switch>
+                                <Route path='/schools' render={() => <School schools={schools} students={students}/>} />
+                                <Route path='/students' component= {Student}/>
+                            </Switch>
+                        </HashRouter>
                     )
                 }
             }
