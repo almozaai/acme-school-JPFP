@@ -26,6 +26,13 @@ app.post('/api/students', (req, res, next) => {
         .catch(next)
 })
 
+app.delete('/api/students/:id', (req, res, next) => {
+    Student.findByPk(req.params.id)
+        .then(student => student.destroy())
+        .then(() => res.sendStatus(204))
+        .catch(next);
+})
+
 db.syncAndSeed()
     .then(() => app.listen(port, () => console.log(`listen on port ${port}`)))
     .catch(ex => console.log(ex))

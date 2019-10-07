@@ -5,15 +5,20 @@
         <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/react-router-dom/5.1.2/react-router-dom.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.4/redux.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.1.1/react-redux.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux-thunk/2.3.0/redux-thunk.js"></script>
+
         <!-- <link rel="stylesheet" href="/main.css"> -->
         <style>
-            .container {
+            div .container {
             width: 300px;
             height: 200px;
             background-color: lightgray;
             border: 1px solid black;
             border-radius: 10px;
             box-sizing: border-box;
+            margin-bottom: 10px;
             }
 
             .title {
@@ -32,6 +37,18 @@
                 margin:-21.875% 0;
             }
 
+            .destroy{
+                background-color: tomato;
+                border: none;
+                color: white;
+                padding: 8px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                cursor: pointer;
+            }
+
             .third {
             text-align: center;
             }
@@ -40,38 +57,107 @@
     <body>
         <div id="root"></div>
         <script type="text/babel">
+            //constant
             const { Component } = React;
             const { render } = ReactDOM;
             const { HashRouter, Route, Switch, Link } = ReactRouterDOM;
+            const { createStore, combineReducers, applyMiddleware } = Redux;
+            const { Provider, connect } = ReactRedux;
+
             const root = document.getElementById('root');
 
-            class Form extends Component{
+            
+            const SET_SCHOOL = 'SET_SCHOOL';
+            const SET_STUDENT = 'SET_STUDENT';
+            const CREATE_STUDENT = 'CREATE_STUDENT';
+            const DESTROY_STUDENT = 'DESTROY_STUDENT';
+            const UPDATE_STUDENT = 'UPDATE_STUDENT';
+
+            //actions creator
+            const setSchool = (schools) => ({ type: SET_SCHOOL, schools })
+            const setStudents = (students) => ({ type: SET_STUDENT, students });
+            const _createStudent = (student) => ({ type: CREATE_STUDENT, student });
+            const _destroyStudent = (student) => ({ type: DESTROY_STUDENT, student });
+
+            //thunks
+            const getSchools = () => {
+                return async(dispatch) => {
+                    const schools = (await axios.get('/api/schools')).data;
+                    return dispatch(setSchool(schools));
+                }
+            }
+
+            const getStudents = () => {
+                return async(dispatch)=> {
+                    const students = (await axios.get('/api/students')).data;
+                    return dispatch(setStudents(students));
+                };
+            };
+
+            const createStudent = (student) => {
+                return async(dispatch) => {
+                    const created = (await axios.post('/api/students', student)).data;
+                    return dispatch(_createStudent(created));
+                };
+            };
+
+            const destroyStudent = (student) => {
+                return async(dispatch) => {
+                    await axios.delete('/api/students', student)
+                    return dispatch(_destroyStudent(student));
+                };
+            };
+
+
+            //store
+            const store = createStore(
+                combineReducers({
+                    schools: (state = [], action) => {
+                        if(action.type === SET_SCHOOL){
+                            return action.schools;
+                        }
+                        return state;
+                    },
+                students: (state = [], action) => {
+                    if(action.type === SET_STUDENT){
+                        return action.students
+                    }
+                    if(action.type === CREATE_STUDENT){
+                        return [...state, action.student];
+                    }
+                    if(action.type === DESTROY_STUDENT){
+                        return state.filter(student => student.id !== action.student.id)
+                    }
+                    return state
+                }
+                }), applyMiddleware(ReduxThunk.default)
+            )
+
+            //Form
+            class _Form extends Component{
                 constructor(){
                     super();
                     this.state = {
-                    student: {},
-                    schools: []
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    GPA: ''
                 }
-                this.handleSubmit = this.handleSubmit.bind(this);
-            }
-                 async handleSubmit(ev){
-                    ev.preventDefault()
-                    const student = (await axios.post('/api/students', this.state))
-                    console.log('this one', this.state)
-                    // await this.props.create(this.state)
-                }
-                 async componentDidMount(){
-                    const responses = await axios.get('/api/schools')
-                    this.setState({ schools: responses.data })
-                }
+                this.create = this.create.bind(this);
+                 }
+
+                 async create(){ //create function for student
+                     await this.props.create(this.state)
+                 }
                 render(){
-                    const { student, schools} = this.state;
+                    const schools  = this.props.schools;
+                    const { firstName, lastName, email, GPA} = this.state
                     return (
-                    <form onSubmit={this.handleSubmit}>
-                        First name: <input value={ student.firstName } onChange={(ev)=> this.setState({ firstName: ev.target.value})} />
-                        Last name: <input value={ student.lastName } onChange={(ev)=> this.setState({ lastName: ev.target.value})} />
-                        Email: <input value={ student.email } onChange={(ev)=> this.setState({ email: ev.target.value})} />
-                        GPA<input value={ student.GPA } onChange={(ev)=> this.setState({ GPA: ev.target.value})} />
+                    <form onSubmit={this.create}>
+                        First name: <input name="firstName" value={ firstName } onChange={(ev)=> this.setState({ firstName: ev.target.value})} />
+                        Last name: <input name="lastName" value={ lastName } onChange={(ev)=> this.setState({ lastName: ev.target.value})} />
+                        Email: <input name="email" value={ email } onChange={(ev)=> this.setState({ email: ev.target.value})} />
+                        GPA<input name="GPA" value={ GPA } onChange={(ev)=> this.setState({ GPA: ev.target.value})} />
                         <select className='schoolImage' onChange={(ev)=>this.setState({schoolId: ev.target.value})}>
                             {schools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}
                             </select>
@@ -80,23 +166,61 @@
                     );
                 }
             }
+            // the problem here I cant create student and page refresh, also how ot include schoolId
+            const Form = connect(({schools}) =>{
+                return{
+                    schools
+                }
+            } , (dispatch) => {
+                return {
+                    create: (student) => dispatch(createStudent(student))
+                };
+            })(_Form);
+
+        
 
 
-            const Nav = ({ schools, students, path }) => {
+            const _Nav =  ({ schools, students}) => {
+                console.log(schools)
+                // const  id = props.match.params.id;
+                const h = [];
+                schools.forEach(school => {
+                    const U = {}
+                    const average = school.students.reduce((acc, el)=>{
+                        acc = acc + el.GPA/ school.students.length;
+                        return acc
+                    }, 0)
+                    U.id = school.id;
+                    U.average = average;
+                    h.push(U)
+                })
+                const max = Math.max(...h.map(el => el.average));
+                const topSchoolId = h.filter(el => el.average === max)
+                const topSchool = schools.filter(el => el.id === topSchoolId[0].id)
                 return(
                 <nav>
-                    <Link to='/schools'>School</Link>
-                    <Link to='/students'>Student</Link>
+                    <Link to='/schools'>School ({schools.length})</Link>
+                    <Link to='/students'>Student ({students.length})</Link>
+                    <Link to='/schools/:id'>Tp School { topSchool.name }</Link>
                 </nav>
                 )
             };
 
-            const Schools = ({ schools, students }) => {
-                /*
+            const Nav = connect(({ schools, students}) =>{
+                return {
+                    schools,
+                    students
+                }
+            })(_Nav)
+
+            store.dispatch(getStudents())//I did this because in Nav students when dispatch return promise 
+
+            
+            const _Schools = ({ schools, students }) => {
                 const schoolStudents = schools.map(school => {
                    return {...school, student: students.filter(student => student.schoolId === school.id)}
                 })
-                */
+                
                 return (
                     <div>
                         {schools.map(school => <Link to={`/schools/${school.id}`}><div className='container'>
@@ -115,7 +239,15 @@
                 )
             };
 
-            const School = (props) => {
+            const Schools = connect(({ schools, students})=>{
+                return {
+                    schools,
+                    students
+                }
+            })(_Schools)
+            
+            //I need to passing the props params match id
+            const _School = ({ schools, props }) => {
                 const id = props.match.params.id;
                 const school = props.schools.find(school => school.id === id);
                 console.log(props)
@@ -141,21 +273,54 @@
                  )
             }
 
-            const Student = () => {
+            const School = connect(({ schools })=>{
+                return{
+                    schools
+                }
+            })(_School)
+
+            const _Students = ({ schools, students, destroy }) => {//I can't refresh from here all data will destroyed need to back localhost/port first to generate data in UI
+                console.log(students, schools)
                 return (
-                    <h1>Student</h1>
+                    <div>
+                        <ul>
+                            {
+                                students.map(student => <li><div className='container'>
+                                <div className='title'>
+                                <h3>{student.firstName} {student.lastName}</h3>
+                                </div>
+                                <div className='image portrait-crop'>
+                                     
+                                <img src={schools.find(school => school.id === student.schoolId).imageUrl}/>
+                                </div>
+                                <div>
+                                <h3 className='third'>GPA {student.GPA}</h3>
+                                <button className="destroy" type='button' onClick={ () => destroy(student)}>Destroy Student</button>{// get error 404
+                                }
+                                </div>
+                            </div></li>)
+                            }
+                        </ul>
+                    </div>
                 )
             }
 
-            class App extends Component{
-                constructor(){
-                    super();
-                    this.state = {
-                        students: [],
-                        schools: []
-                    }
-                    this.handleSubmit = this.handleSubmit.bind(this)
+            const Students = connect(({ schools, students })=>{ //it is return schools undifine because I was on student links I didn't go to home page to generate schools throw App
+                return{
+                    schools,
+                    students
                 }
+            }, (dispatch) => {
+                return{
+                    destroy: (student) => dispatch(destroyStudent(student))
+                }
+            })(_Students)
+            
+
+            class _App extends Component{
+                
+                  
+                /*
                 async handleSubmit(ev){
                     ev.preventDefault()
                     const student = (await axios.post('/api/students', this.state)).data
@@ -166,23 +331,36 @@
                     const responses = await Promise.all([axios.get('/api/students'), axios.get('/api/schools')])
                     this.setState({ students: responses[0].data, schools: responses[1].data })
                 }
+                */
+                componentDidMount(){
+                    this.props.fetchSchools()
+                }
                 render(){
-                    const { students, schools } = this.state
-                    const { handleSubmit } = this;
+                    const { schools } = this.props;
                     return(
                         <HashRouter>
-                            <Route render={ (props)=> <Nav path={ props.location.pathname} schools={schools} students={students}   /> } />
-                            <Form schools={ schools } students={students} handleSubmit = {handleSubmit}/>
+                            <Nav />
+                            <Form />
                             <Switch>
-                                <Route exact path='/schools' render={() => <Schools schools={schools} students={students}/>} />
-                                <Route path='/schools/:id' render={(props) => <School schools={schools} students={students} {...props} />} />
-                                <Route path='/students' component= {Student}/>
-                            </Switch>
+                                <Route path='/schools' component={Schools} />
+                                <Route path='/schools/:id' render={() => <School  path={props.location.pathName} />} />
+                                <Route path='/schools/:id' render={() => <TopSchool path={props.location.pathName} />} />
+                                <Route path='/students' component= {Students}/>
+                                </Switch> 
                         </HashRouter>
                     )
                 }
             }
-            render(<App />, root);
+
+            const App = connect(null, (dispatch)=>{
+                return {
+                    fetchSchools: ()=> dispatch(getSchools())
+                }
+            })(_App)
+
+            render(<Provider store={ store }><App /></Provider>, root);
+
+            
 
         </script>
         
