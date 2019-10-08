@@ -270,10 +270,9 @@
             //I need to passing the props params match id
             const _School = ({ schools }) => {
                 // const id = props.match.params.id;
-                // console.log(id)
 
                 const school = props.schools.find(school => school.id === id);
-                // console.log(props)
+                
                  return (
                     <div>
                         <h2>{school.name}</h2>
@@ -314,7 +313,7 @@
                                 </div>
                                 <div className='image portrait-crop'>
                                     
-                                <img src={student.schoolId? schools.find(school => school.id === student.schoolId).imageUrl: ''}/>
+                                <img src={student.schoolId? schools.find(school => school.id === student.schoolId): ''}/>
                                 </div>
                                 <div>
                                 <h3 className='third'>GPA {student.GPA}</h3>
