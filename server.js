@@ -35,6 +35,18 @@ app.delete('/api/students/:id', (req, res, next) => {
         .catch(next);
 })
 
+app.put('/api/students/:id', async (req,res,next) =>{
+    try{
+        const instance = await Student.findByPk(req.params.id);
+        Object.assign(instance, req.body);
+        await instance.save();
+        res.send(instance)
+    }
+    catch(ex) { next(ex) }
+    
+        
+})
+
 db.syncAndSeed()
     .then(() => app.listen(port, () => console.log(`listen on port ${port}`)))
     .catch(ex => console.log(ex))
