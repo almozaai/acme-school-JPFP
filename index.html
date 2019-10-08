@@ -78,6 +78,7 @@
             const setStudents = (students) => ({ type: SET_STUDENT, students });
             const _createStudent = (student) => ({ type: CREATE_STUDENT, student });
             const _destroyStudent = (student) => ({ type: DESTROY_STUDENT, student });
+            const _updateStudent = (student) => ({ type: UPDATE_STUDENT, student })
 
             //thunks
             const getSchools = () => {
@@ -95,11 +96,19 @@
             };
 
             const createStudent = (student) => {
+                console.log(student)
                 return async(dispatch) => {
                     const created = (await axios.post('/api/students', student)).data;
                     return dispatch(_createStudent(created));
                 };
             };
+
+            const updateStudent = (student) => {
+                return async(dispatch) => {
+                    const updated = (await axios.put('/api/students/:id', student)).data;
+                    return dispatch(_updateStudent(student))
+                }
+            }
 
             const destroyStudent = (student) => {
                 return async(dispatch) => {
@@ -128,6 +137,9 @@
                     if(action.type === DESTROY_STUDENT){
                         return state.filter(student => student.id !== action.student.id)
                     }
+                    if(action.type === UPDATE_STUDENT){
+                        
+                    }
                     return state
                 }
                 }), applyMiddleware(ReduxThunk.default)
@@ -135,8 +147,8 @@
 
             //Form
             class _Form extends Component{
-                constructor(){
-                    super();
+                constructor(props){
+                    super(props);
                     this.state = {
                     firstName: '',
                     lastName: '',
@@ -144,29 +156,39 @@
                     GPA: ''
                 }
                 this.create = this.create.bind(this);
+                this.handelChange = this.handelChange.bind(this)
                  }
 
-                 async create(){ //create function for student
+                 async create(e){ //create function for student
+                    e.preventDefault()
                      await this.props.create(this.state)
                  }
+
+                 handelChange(e){
+                    
+                    const schoolId = e.target.options[e.target.selectedIndex].value
+                    this.setState({...this.state, schoolId: schoolId})
+                 }
+
                 render(){
                     const schools  = this.props.schools;
-                    const { firstName, lastName, email, GPA} = this.state
+                    const { firstName, lastName, email, GPA, schoolId} = this.state
                     return (
-                    <form onSubmit={this.create}>
+                    <form onSubmit={(e)=>this.create(e)}>
                         First name: <input name="firstName" value={ firstName } onChange={(ev)=> this.setState({ firstName: ev.target.value})} />
                         Last name: <input name="lastName" value={ lastName } onChange={(ev)=> this.setState({ lastName: ev.target.value})} />
                         Email: <input name="email" value={ email } onChange={(ev)=> this.setState({ email: ev.target.value})} />
-                        GPA<input name="GPA" value={ GPA } onChange={(ev)=> this.setState({ GPA: ev.target.value})} />
-                        <select className='schoolImage' onChange={(ev)=>this.setState({schoolId: ev.target.value})}>
+                        GPA<input name="GPA" value={ GPA } onChange={(ev)=> this.setState({ GPA: ev.target.value*1})} />
+                        <select className='schoolImage' onChange={(e) => this.handelChange(e)}>
+                            <option> --No Enrolled-- </option>
                             {schools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}
                             </select>
-                        <button type='submit'>Save</button>
+                        <button type="submit" >Save</button>
                     </form>
                     );
                 }
             }
-            // the problem here I cant create student and page refresh, also how ot include schoolId
+            // the problem here I cant create student get error 500, also how ot include schoolId
             const Form = connect(({schools}) =>{
                 return{
                     schools
@@ -181,8 +203,6 @@
 
 
             const _Nav =  ({ schools, students}) => {
-                console.log(schools)
-                // const  id = props.match.params.id;
                 const h = [];
                 schools.forEach(school => {
                     const U = {}
@@ -211,12 +231,13 @@
                     schools,
                     students
                 }
+            
             })(_Nav)
 
-            store.dispatch(getStudents())//I did this because in Nav students when dispatch return promise 
 
             
             const _Schools = ({ schools, students }) => {
+                // console.log(props)
                 const schoolStudents = schools.map(school => {
                    return {...school, student: students.filter(student => student.schoolId === school.id)}
                 })
@@ -247,10 +268,12 @@
             })(_Schools)
             
             //I need to passing the props params match id
-            const _School = ({ schools, props }) => {
-                const id = props.match.params.id;
+            const _School = ({ schools }) => {
+                // const id = props.match.params.id;
+                // console.log(id)
+
                 const school = props.schools.find(school => school.id === id);
-                console.log(props)
+                // console.log(props)
                  return (
                     <div>
                         <h2>{school.name}</h2>
@@ -290,8 +313,8 @@
                                 <h3>{student.firstName} {student.lastName}</h3>
                                 </div>
                                 <div className='image portrait-crop'>
-                                     
-                                <img src={schools.find(school => school.id === student.schoolId).imageUrl}/>
+                                    
+                                <img src={student.schoolId? schools.find(school => school.id === student.schoolId).imageUrl: ''}/>
                                 </div>
                                 <div>
                                 <h3 className='third'>GPA {student.GPA}</h3>
@@ -339,12 +362,11 @@
                     const { schools } = this.props;
                     return(
                         <HashRouter>
-                            <Nav />
+                            <Route component= { Nav } />
                             <Form />
                             <Switch>
-                                <Route path='/schools' component={Schools} />
-                                <Route path='/schools/:id' render={() => <School  path={props.location.pathName} />} />
-                                <Route path='/schools/:id' render={() => <TopSchool path={props.location.pathName} />} />
+                                <Route exact path='/schools' component={Schools} />
+                                <Route path='/schools/:id'  component={School} />
                                 <Route path='/students' component= {Students}/>
                                 </Switch> 
                         </HashRouter>
@@ -354,7 +376,8 @@
 
             const App = connect(null, (dispatch)=>{
                 return {
-                    fetchSchools: ()=> dispatch(getSchools())
+                    fetchSchools: ()=> dispatch(getSchools()),
+                    fetchStudents: () => dispatch(getStudents())
                 }
             })(_App)
 

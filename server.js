@@ -5,6 +5,8 @@ const db = require('./db');
 const { Student, School } = db.models;
 const port = process.env.PORT || 5000;
 
+app.use(express.json())
+
 app.get('/', (req, res, next) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.get('/api/students', async(req,res,next) => {
@@ -19,10 +21,10 @@ app.get('/api/schools', (req,res,next) => {
         .catch(next);
 });
 
-app.post('/api/students', (req, res, next) => {
+app.post('/api/students/', (req, res, next) => {
     console.log(req.body)
     Student.create(req.body)
-        .then(student => res.send(student))
+        .then(student => res.status(201).send(student))
         .catch(next)
 })
 
