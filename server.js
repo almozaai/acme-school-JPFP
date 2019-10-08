@@ -7,6 +7,7 @@ const port = process.env.PORT || 5000;
 
 app.use(express.json())
 
+app.use('/dist', express.static(path.join(__dirname, 'dist')));
 app.get('/', (req, res, next) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.get('/api/students', async(req,res,next) => {
