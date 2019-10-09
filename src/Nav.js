@@ -24,7 +24,7 @@ const _Nav =  ({ schools, students}) => {
     <nav>
         
         <Link to={ topSchool.length? `/schools/${topSchool[0].id}`: '/schools/'}>
-        Top School {topSchool.name} 
+        Top School {topSchool.length? topSchool[0].name: ''} 
         {/*
             Why get error here and empty erray after click on the link
         */ }
