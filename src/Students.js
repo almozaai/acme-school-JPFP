@@ -21,14 +21,14 @@ class _Students extends React.Component{
                 {
                     students.map(student => <li key={student.id}><div className='container'>
                     <div className='title'>
-                    <h3>{student.firstName} {student.lastName}</h3>
+                    <h3 key={student.id}>{student.firstName} {student.lastName}</h3>
                     </div>
                     <div className='image portrait-crop'>
                         
-                    <img src={student.schoolId? schools.find(school => school.id === student.schoolId).imageUrl: ''}/>
+                    <img key={student.id} src={student.schoolId? schools.find(school => school.id === student.schoolId).imageUrl: ''}/>
                     </div>
                     <div>
-                    <h3 className='third'>GPA {student.GPA}</h3>
+                    <h3 key={student.id} className='third'>GPA {student.GPA}</h3>
                     <select className='schoolImage' onChange={(e) => this.handelChange(e, student.schoolId)}>
                     <option value = ''> --No Enrolled-- </option>
                     {schools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}

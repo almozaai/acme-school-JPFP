@@ -17,10 +17,18 @@ const _Nav =  ({ schools, students}) => {
     const max = Math.max(...h.map(el => el.average));
     const topSchoolId = h.filter(el => el.average === max)
     const topSchool = schools.filter(el => el.id === topSchoolId[0].id)
-    // console.log(topSchool)
+    
+    console.log('top school',topSchool)
     
     return(
     <nav>
+        
+        <Link to={ topSchool.length? `/schools/${topSchool[0].id}`: '/schools/'}>
+        Top School {topSchool.name} 
+        {/*
+            Why get error here and empty erray after click on the link
+        */ }
+         </Link>
         <Link to='/'>Acme School</Link>
         <Link to='/schools'>School ({schools.length})</Link>
         <Link to='/students'>Student ({students.length})</Link>
