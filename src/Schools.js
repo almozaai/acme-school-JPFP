@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 
 const _Schools = ({ schools, students }) => {
+        
     return (
         <div className='schools'>
             {schools.map(school => <Link key={school.id} to={`/schools/${school.id}`}><div className='container'>
@@ -14,7 +15,7 @@ const _Schools = ({ schools, students }) => {
                             <img key={school.id} src={school.imageUrl}/>
                     </div>
                     <div>
-                    <h3 className='third' key={school.id}>{school.students.length}</h3>
+                    <h3 className='third' key={school.id}>{students.filter(student => student.schoolId === school.id).length}</h3>
                     </div>
                 </div></Link>)}
         </div>         

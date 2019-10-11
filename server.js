@@ -23,7 +23,6 @@ app.get('/api/schools', (req,res,next) => {
 });
 
 app.post('/api/students/', (req, res, next) => {
-    console.log(req.body)
     Student.create(req.body)
         .then(student => res.status(201).send(student))
         .catch(next)

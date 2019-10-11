@@ -6,8 +6,10 @@ const _Nav =  ({ schools, students}) => {
     const h = [];
     schools.forEach(school => {
         const U = {}
-        const average = school.students.reduce((acc, el)=>{
-            acc = acc + el.GPA/ school.students.length;
+        const average = students.reduce((acc, el)=>{
+            if(el.schoolId === school.id){
+                acc = acc + el.GPA/ school.students.length;
+            } 
             return acc
         }, 0)
         U.id = school.id;
@@ -17,19 +19,28 @@ const _Nav =  ({ schools, students}) => {
     const max = Math.max(...h.map(el => el.average));
     const topSchoolId = h.filter(el => el.average === max)
     const topSchool = schools.filter(el => el.id === topSchoolId[0].id)
+    const mostSchool = schools.map(school => {
+            return students.filter(student => student.schoolId === school.id)
+    })
     
-    console.log('top school',topSchool)
+    mostSchool.sort()
     
+    const themost = mostSchool[mostSchool.length - 1]
+   const mostSchoolname = schools.find(school => {
+    return themost.filter(most => most.schoolId === school.id)
+})
+const theName = mostSchoolname?mostSchoolname.name:''
+     
     return(
     <nav>
-        
-        <Link to={ topSchool.length? `/schools/${topSchool[0].id}`: '/schools/'}>
-        Top School {topSchool.length? topSchool[0].name: ''} 
-        {/*
-            Why get error here and empty erray after click on the link
-        */ }
-         </Link>
         <Link to='/'>Acme School</Link>
+        <Link to={ theName? `/schools/${topSchool[0].id}`: '/schools/'}>
+        Most Popular  {theName? topSchool[0].name: ''}  ({themost?themost.length:0})
+         </Link>
+        <Link to={ topSchool.length? `/schools/${topSchool[0].id}`: '/schools/'}>
+        Top School {topSchool.length? topSchool[0].name: ''}
+         </Link>
+        
         <Link to='/schools'>School ({schools.length})</Link>
         <Link to='/students'>Student ({students.length})</Link>
     </nav>

@@ -1,7 +1,9 @@
-import { combineReducers, createStore } from 'redux';
-import { applyMiddleware } from 'redux';
+import { combineReducers, createStore, applyMiddleware, compose } from 'redux';
 import thunks from 'redux-thunk';
 import axios from 'axios';
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+
 //constant
 const SET_SCHOOL = 'SET_SCHOOL';
 const SET_STUDENT = 'SET_STUDENT';
@@ -32,7 +34,6 @@ const getStudents = () => {
 };
 
 const createStudent = (student) => {
-    console.log(student)
     return async(dispatch) => {
         const created = (await axios.post('/api/students', student)).data;
         return dispatch(_createStudent(created));
@@ -42,7 +43,7 @@ const createStudent = (student) => {
 const updateStudent = (student) => {
     return async(dispatch) => {
         const updated = (await axios.put(`/api/students/${student.id}`, student)).data;
-        return dispatch(_updateStudent(student))
+        return dispatch(_updateStudent(updated))
     }
 }
 
@@ -61,8 +62,6 @@ const store = createStore(
             if(action.type === SET_SCHOOL){
                 return action.schools;
             } 
-            
-            
             return state;
         },
     students: (state = [], action) => {
@@ -76,11 +75,14 @@ const store = createStore(
             return state.filter(student => student.id !== action.student.id)
         }
         if(action.type === UPDATE_STUDENT){
-            return state.map(student => student.id === action.student.id ? action.student : student);
+            return state.map(student => student.id === action.student.id ? action.student: student);
         }
+        
         return state
     }
-    }), applyMiddleware(thunks)
+    }), composeEnhancers(
+         applyMiddleware(thunks)
+        )
 )
 
 export default store;

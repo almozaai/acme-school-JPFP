@@ -34,7 +34,7 @@ class _App extends React.Component{
                     <Route exact path='/schools' component={Schools} />
                     <Route path='/schools/:id'  component={School} />
                     <Route path='/students' component= {Students}/>
-                    </Switch> 
+                </Switch> 
             </HashRouter>
         )
     }

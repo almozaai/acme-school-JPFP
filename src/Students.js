@@ -1,39 +1,48 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { destroyStudent } from './store';
+import { destroyStudent, updateStudent } from './store';
 
 class _Students extends React.Component{
-    componentDidMount(){
-        this.props.destroy()
-    }
-    handelChange(e, id){
-        if(e.target.options[e.target.selectedIndex].value == ''){
-           id = '' 
+    
+    handelChange(e, student){
+        if(e.target.options[e.target.selectedIndex].value === ''){
+            student.schoolId = null;
         }
-        id = e.target.options[e.target.selectedIndex].value
+        else {
+            student.schoolId = e.target.options[e.target.selectedIndex].value
+        }
+        
+        console.log('ID', student.schoolId)
+        this.props.update(student)
+
     }
     
     render(){
         const { schools, students } = this.props
+        console.log(students, 'sstudents')
     return (
         <div>
-            <ul>
+            <ul className="grid-cont">
                 {
                     students.map(student => <li key={student.id}><div className='container'>
+                        <div className="content-wrap">
                     <div className='title'>
                     <h3 key={student.id}>{student.firstName} {student.lastName}</h3>
                     </div>
                     <div className='image portrait-crop'>
                         
-                    <img key={student.id} src={student.schoolId? schools.find(school => school.id === student.schoolId).imageUrl: ''}/>
+                    <img  key={student.id} src={student.schoolId? schools.find(school => school.id === student.schoolId).imageUrl: ''}/>
                     </div>
                     <div>
-                    <h3 key={student.id} className='third'>GPA {student.GPA}</h3>
-                    <select className='schoolImage' onChange={(e) => this.handelChange(e, student.schoolId)}>
-                    <option value = ''> --No Enrolled-- </option>
+                    <h6  className='third'>GPA: {student.GPA}</h6>
+                    <select className='schoolImage' onChange={(e) => this.handelChange(e, student)}>
+                    <option value = '' > --No Enrolled-- </option>
                     {schools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}
                     </select>
-                    <button className="destroy" type='button' onClick={ () => destroy(student)}>Destroy Student</button>
+                    </div>
+                    <footer id='footer'>
+                    <button  className="destroy" type='button' onClick={ (e) => this.props.destroy(student)}>Destroy Student</button>
+                    </footer>
                     </div>
                 </div></li>)
                 }
@@ -49,7 +58,8 @@ const Students = connect(({ schools, students })=>{
     }
     }, (dispatch) => {
     return{
-        destroy: (student) => dispatch(destroyStudent(student))
+        destroy: (student) => dispatch(destroyStudent(student)),
+        update: (student) => dispatch(updateStudent(student))
     }
     })(_Students)
 
